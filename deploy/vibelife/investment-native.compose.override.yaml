@@ -1,0 +1,7 @@
+services:
+  wealthfolio:
+    image: vibelife-wealthfolio:investment-analysis-candidate
+    pull_policy: never
+    labels:
+      io.vibelife.origin: upstream-release-plus-investment-analysis
+      io.vibelife.data-state: isolated-test

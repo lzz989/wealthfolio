@@ -5,6 +5,7 @@ import SpendingInsightsPage from "@/features/spending/pages/spending-insights-pa
 
 import { useAccountScopeStore } from "@/lib/account-scope-store";
 import IncomePage from "@/pages/income/income-page";
+import { InvestmentAnalysis } from "@/features/vibelife-analysis/investment-analysis";
 import PerformancePage from "@/pages/performance/performance-page";
 import { Icons } from "@wealthfolio/ui";
 import { Card, CardContent, CardHeader } from "@wealthfolio/ui/components/ui/card";
@@ -90,6 +91,13 @@ export default function PortfolioInsightsPage() {
             <PerformancePage />
           </Suspense>
         ),
+      },
+      {
+        value: "investment-history",
+        label: "投资分析",
+        icon: Icons.TrendingUp,
+        content: <InvestmentAnalysis scope={accountFilter} />,
+        actions: <AccountScopeSelector value={accountFilter} onChange={setAccountScope} />,
       },
       {
         value: "income",

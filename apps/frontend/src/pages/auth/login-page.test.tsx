@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SSO_REDIRECT_GUARD_STORAGE_KEY } from "@/context/auth-context";
+import { takeInvestmentAnalysis } from "@/context/vibelife-oidc-return";
 import { LoginPage } from "./login-page";
 
 const useAuthMock = vi.hoisted(() => vi.fn());
@@ -67,6 +68,7 @@ describe("LoginPage automatic SSO redirect", () => {
 
   it("lets the manual SSO button navigate while the guard is armed", async () => {
     window.sessionStorage.setItem(SSO_REDIRECT_GUARD_STORAGE_KEY, "1");
+    vi.stubGlobal("location", { href: "http://localhost/insights?tab=investment-history", pathname: "/insights", search: "?tab=investment-history", replace: replaceMock });
     const user = userEvent.setup();
 
     render(<LoginPage />);
@@ -74,6 +76,7 @@ describe("LoginPage automatic SSO redirect", () => {
 
     expect(window.location.href).toBe(SSO_LOGIN_URL);
     expect(window.sessionStorage.getItem(SSO_REDIRECT_GUARD_STORAGE_KEY)).toBe("1");
+    expect(takeInvestmentAnalysis("/")).toBe("/insights?tab=investment-history");
   });
 
   it("does not redirect while a login error is displayed", () => {

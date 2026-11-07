@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { reloadApplication } from "@/lib/reload-application";
 import { notifyUnauthorized } from "@/lib/auth-token";
@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { revokeProfileSession, hasProfileSession } from "@/features/profiles/session";
 import { LoginPage } from "@/pages/auth/login-page";
 import { AuthGate, AuthProvider } from "./auth-context";
+import { rememberInvestmentAnalysis } from "./vibelife-oidc-return";
 
 vi.mock("@/lib/reload-application", () => ({ reloadApplication: vi.fn() }));
 vi.mock("@/adapters", () => ({ isWeb: true }));
@@ -34,6 +35,21 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+it("keeps the login gate loading while a confirmed SSO return navigates to analysis", async () => {
+  window.sessionStorage.clear();
+  rememberInvestmentAnalysis("/insights", "?tab=investment-history");
+  const replace = vi.fn();
+  vi.stubGlobal("location", { pathname: "/", search: "", replace });
+  fetchMock
+    .mockResolvedValueOnce(Response.json({ requiresPassword: false, oidcEnabled: true }))
+    .mockResolvedValueOnce(Response.json({ authenticated: true }));
+  mount(undefined, <LoginPage />);
+  await waitFor(() => expect(replace).toHaveBeenCalledOnce());
+  expect(replace).toHaveBeenCalledWith("/insights?tab=investment-history");
+  expect(screen.queryByText("Private portfolio")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Sign in with SSO" })).not.toBeInTheDocument();
 });
 
 it.each(["network", "server", "invalid JSON"])(

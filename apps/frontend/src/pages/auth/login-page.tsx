@@ -1,4 +1,5 @@
 import { SSO_REDIRECT_GUARD_STORAGE_KEY, useAuth } from "@/context/auth-context";
+import { clearInvestmentAnalysis, rememberInvestmentAnalysis } from "@/context/vibelife-oidc-return";
 import {
   ApplicationShell,
   Button,
@@ -49,8 +50,9 @@ export function LoginPage() {
   useEffect(() => {
     if (statusLoading || !oidcEnabled || requiresPassword) return;
     // An explicit callback error must stay visible instead of bouncing back out.
-    if (loginError) return;
+    if (loginError) { clearInvestmentAnalysis(); return; }
     if (!armSsoRedirectGuard()) return;
+    rememberInvestmentAnalysis(window.location.pathname, window.location.search);
     // replace() keeps the transient login page out of the back-button history.
     window.location.replace(SSO_LOGIN_URL);
   }, [statusLoading, oidcEnabled, requiresPassword, loginError]);
@@ -142,6 +144,7 @@ export function LoginPage() {
                     onClick={() => {
                       // Deliberate click: navigates regardless of the guard, which
                       // only `/auth/me` confirming a session may clear.
+                      rememberInvestmentAnalysis(window.location.pathname, window.location.search);
                       window.location.href = SSO_LOGIN_URL;
                     }}
                   >

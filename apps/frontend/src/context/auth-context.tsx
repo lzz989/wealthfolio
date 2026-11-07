@@ -1,4 +1,5 @@
 import { revokeProfileSession, hasProfileSession } from "@/features/profiles/session";
+import { clearInvestmentAnalysis, takeInvestmentAnalysis } from "./vibelife-oidc-return";
 import { isWeb } from "@/adapters";
 import { Button } from "@wealthfolio/ui/components/ui/button";
 import { reloadApplication } from "@/lib/reload-application";
@@ -104,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     let cancelled = false;
     const loadStatus = async () => {
+      let returningToAnalysis = false;
       try {
         const response = await fetch("/api/v1/auth/status", {
           credentials: "same-origin",
@@ -148,13 +150,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           if (!cancelled) {
             clearSsoRedirectGuard();
+            const destination = takeInvestmentAnalysis(window.location.pathname);
+            if (destination) {
+              returningToAnalysis = true;
+              window.location.replace(destination);
+              return;
+            }
             setCookieSession(true);
           }
         }
       } catch {
+        returningToAnalysis = false;
         if (!cancelled) setStatusError(true);
       } finally {
-        if (!cancelled) setStatusLoading(false);
+        if (!cancelled && !returningToAnalysis) setStatusLoading(false);
       }
     };
 
@@ -241,6 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    clearInvestmentAnalysis();
     invalidateSession();
     if (isWeb) {
       try {
